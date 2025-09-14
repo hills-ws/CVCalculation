@@ -28,62 +28,78 @@ class MainWindow(QtWidgets.QMainWindow):
     def initUI(self):
         self.resize(800,600)
 
-        # setting for Dit versus phis distribution 
-        self.graphicsView_Dit.setEnabled(True)
-        self.graphicsView_Dit.setBackground("white")
-        self.graphicsView_Dit.setTitle("Dit distribution", color="b", size="10pt")
+        # plotWidget1: Dit versus phis distribution 
+        self.plotWidget1 = pg.PlotWidget()
+        self.plotWidget1.setBackground("w")
+        self.plotWidget1.setTitle("Dit distribution", color="b", size="10pt")
+        self.plotWidget1.addLegend(offset=(-10, 10))
         styles={'color':'b'}
-        self.graphicsView_Dit.setLabel("left", "Dit", "/cm2/eV", **styles)
-        self.graphicsView_Dit.setLabel("bottom", "phis", "eV", **styles)
+        self.plotWidget1.setLabel("left", "log10 Dit", "/cm2/eV", **styles)
+        self.plotWidget1.setLabel("bottom", "phis", "eV", **styles)
+        self.plotWidget1.setRange(xRange=(-2,2.0), yRange=(9, 13), padding=0)
+        
+        layout1=QtWidgets.QVBoxLayout()
+        layout1.setContentsMargins(0, 0, 0, 0)
+        layout1.addWidget(self.plotWidget1)
+        self.graphicsView_Dit.setLayout(layout1)
+        
+        # plotWidget2: Charge versus phis 
+        self.plotWidget2 = pg.PlotWidget()
+        self.plotWidget2.setBackground("w")
+        self.plotWidget2.setTitle("Charge", color="b", size="10pt")
+        self.plotWidget2.addLegend(offset=(-10, 10))
+        styles={'color':'b'}
+        self.plotWidget2.setLabel("left", "log10(|Q|)", "C/cm2", **styles)
+        self.plotWidget2.setLabel("bottom", "phis", "eV", **styles)
+        self.plotWidget2.showGrid(x=True, y=True)
+        self.plotWidget2.setRange(xRange=(-2.0, 2.0), yRange=(-9, -4), padding=0)
 
-        # setting for Charge versus phis 
+        layout2=QtWidgets.QVBoxLayout()
+        layout2.setContentsMargins(0, 0, 0, 0)
+        layout2.addWidget(self.plotWidget2)
+        self.graphicsView_Q.setLayout(layout2)
 
-        self.graphicsView_Q.setEnabled(True)
-        self.graphicsView_Q.setBackground("white")
-        self.graphicsView_Q.setTitle("Charge", color="b", size="10pt")
-        self.graphicsView_Q.setLabel("left", "|Q|", "C/cm2", **styles)
-        self.graphicsView_Q.setLabel("bottom", "phis", "eV", **styles)
-        self.graphicsView_Q.setLogMode(True)
-        self.graphicsView_Q.setLogMode(x=False, y=False)
-#        log_y_axis=LogAxisItem(orientation='left')
-#        self.graphicsView_Q.PlotWidget(axisItems={'left': log_y_axis})
-        self.graphicsView_Q.showGrid(x=True, y=True)
-        self.graphicsView_Q.setRange(xRange=(-2.0, 2.0), yRange=(-9, -4), padding=0)
-
-        self.graphicsView_Capacitance.setEnabled(True)
-        self.graphicsView_Capacitance.setBackground("w")
-        self.graphicsView_Capacitance.setTitle("capacitance", color="b", size="10pt")
-        self.graphicsView_Capacitance.setLabel("left", "C", "F", **styles)
-        self.graphicsView_Capacitance.setLabel("bottom", "VG", "V", **styles)
-        self.graphicsView_Capacitance.setRange(xRange=(-10.0,10.0), yRange=(0, 100e-9), padding=0)
-
+        # plotWidget3: C-V
+        self.plotWidget3 = pg.PlotWidget()
+        self.plotWidget3.setBackground("w")
+        self.plotWidget3.setTitle("capacitance", color="b", size="10pt")
+        self.plotWidget3.addLegend(offset=(-80,50))
+        styles={'color':'b'}
+        self.plotWidget3.setLabel("left", "C", "F/cm2", **styles)
+        self.plotWidget3.setLabel("bottom", "VG", "V", **styles)
+        self.plotWidget3.setRange(xRange=(-10.0,10.0), yRange=(0, 50e-9), padding=0)
+        
+        layout3=QtWidgets.QVBoxLayout()
+        layout3.setContentsMargins(0, 0, 0, 0)
+        layout3.addWidget(self.plotWidget3)
+        self.graphicsView_Capacitance.setLayout(layout3)
 
         self.pushButton_calculate.clicked.connect(self.calculate)
+        self.pushButton_clear.clicked.connect(self.clearGraph)
 
         self.calculate()
 
     def calculate(self):
+        beta=QE/KB/TEMP
         self.NA=(self.doubleSpinBox_NA_Mantissa.value())*10**float((self.spinBox_NA_Exponent.value()))
         self.NI=(self.doubleSpinBox_NI_Mantissa.value())*10**float((self.spinBox_NI_Exponent.value()))
+        self.PsiB=math.log(math.fabs(self.NA)/self.NI)/beta
+        if self.NA<0:
+            self.PsiB=-self.PsiB
+        self.label_PsiB.setText(str(self.PsiB))
         self.phis1=self.doubleSpinBox_phis1.value()
         self.phis2=self.doubleSpinBox_phis2.value()
-        self.tox=self.doubleSpinBox_DielectricThickness.value()*1e-7
+        self.tox=self.doubleSpinBox_DielectricThickness.value()*1e-7 # (nm)
         self.epsd=self.doubleSpinBox_DielectricPermittivity.value()*EPS0
 
-#        self.graphicsView_Dit = pg.PlotWidget()
-#        self.graphicsView_Dit.plot(hour,temp)
+        self.Dit_Ecnl=self.doubleSpinBox_Dit_Ecnl.value()
+        self.Dit_Dit0=(self.doubleSpinBox_Dit_Dit0_Mantissa.value())*10**float((self.spinBox_Dit_Dit0_Exponent.value()))
+        self.Dit_a=self.doubleSpinBox_Dit_a.value()
+        self.Dit_c=self.doubleSpinBox_Dit_c.value()
+        
         self.draw_Dit()
         self.draw_Q_CV()
-#        self.draw_CV()
     
-    def draw_Dit(self):
-        pen=pg.mkPen(color="b")
-        hour0=[1,2,3,4,5]
-        temp0=[33,35,28,36,30]
-#        self.graphicsView_Dit.plot(x=hour, y=temp,pen,"+",symbolSize=30, symbolBrush="b")
-        self.graphicsView_Dit.addItem(pg.PlotCurveItem(x=hour0, y=temp0, symbol="x", pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True))
-
-
     def draw_Q_CV(self):
         beta=QE/KB/TEMP
         phis1=self.phis1
@@ -105,7 +121,8 @@ class MainWindow(QtWidgets.QMainWindow):
         CD=[]
         Ctotal=[]
         VG=[]
-        phis = np.arange(phis1, phis2, 0.02)
+        VGDit=[]
+        phis = np.arange(phis1, phis2, 0.002)
         Cox=self.epsd/self.tox
         for phis0 in phis:
             Qs0=-(math.sqrt(2.0)*EPSS/beta/LDpp0 * Ffunction(beta*phis0, np0/pp0))
@@ -116,6 +133,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 Qslog.append(math.log10(math.fabs(Qs0)))
             else:
                 Qslog.append(math.log10(1e-30))
+
+            Qit0=self.interfaceCharge(phis0)
 
             if math.fabs(phis0)>1e-6:
                 CD0=( EPSS/math.sqrt(2.0)/LDpp0 *math.fabs(1.0-math.exp(-beta*phis0)+(np0/pp0)*(math.exp(beta*phis0)-1.0)) / Ffunction(beta*phis0, np0/pp0) )
@@ -130,23 +149,110 @@ class MainWindow(QtWidgets.QMainWindow):
 #        print(CD)
 
             VG.append((phis0  + (Qs0)/Cox))
-#        VG=[Qs0 for phis0, Qs0 in zip(phis, Qs)]
-        print(Qs)
+            VGDit.append((phis0 + (Qs0+Qit0)/Cox))
 
         # Plot Qs - phis
         pen=pg.mkPen(color="b")
-        self.graphicsView_Q.addItem(pg.PlotCurveItem(x=phis, y=Qslog, symbol="x", pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True))
+        self.plotWidget2.plot(x=phis, y=Qslog, pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True, name="Qs")
 
         # Plot C-V
         pen=pg.mkPen(color="b")
-        self.graphicsView_Capacitance.addItem(pg.PlotCurveItem(x=VG, y=Ctotal, symbol="x", pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True))
-        
+        self.plotWidget3.plot(x=VG, y=Ctotal, pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True, name="Ctotal w/o Dit")
+#        self.graphicsView_Capacitance.PlotCurveItem(x=VG, y=Ctotal, symbol="x", pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True)
 
+        # Plot C-V with Dit
+        pen=pg.mkPen(color="r")
+        self.plotWidget3.plot(x=VGDit, y=Ctotal, pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True, name="Ctotal w/ Dit")
+
+        Qitlog=[]
+        for phis0 in phis:
+            try:
+                Qitlog.append(math.log10(math.fabs(self.interfaceCharge(phis0))))
+            except:
+                Qitlog.append(math.log10(1e-30))
+        # Plot Qit-V
+        pen=pg.mkPen(color="r")
+        self.plotWidget2.plot(x=phis, y=Qitlog, pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True, name="|Qit|")
+        
+        
+    def clearGraph(self):
+        self.plotWidget1.clear()
+        self.plotWidget2.clear()
+        self.plotWidget3.clear()
+
+    def draw_Dit(self):
+        phis = np.arange(-1.0, 1.0, 0.02)
+        Dit=[]
+        Ditlog_posi=[]
+        Ditlog_nega=[]
+        for phis0 in phis:
+            Dit0=self.interfaceStateDensity(phis0)
+            Dit.append(Dit0)
+            if math.fabs(Dit0)<1e-30:
+                Dit0=math.nan
+            if Dit0>1e-30:
+                Ditlog_posi.append(math.log10(Dit0))
+                Ditlog_nega.append(math.nan)
+            if Dit0<-1e-30:
+                Ditlog_posi.append(math.nan)
+                Ditlog_nega.append(math.log10(-Dit0))
+
+
+        # Plot Dit
+        pen=pg.mkPen('r', width=2, style=QtCore.Qt.SolidLine)
+        self.plotWidget1.plot(x=phis, y=Ditlog_posi, pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True, name="posi Dit")
+        pen=pg.mkPen('r', width=2, style=QtCore.Qt.DashLine)
+        self.plotWidget1.plot(x=phis, y=Ditlog_nega, pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True, name="nega Dit")
+
+    def interfaceStateDensity(self, efs): # Dit (/cm2/eV)
+# efs: surface Fermi level from Ei
+# Dit model function: dit=Dit0*exp(c*|((e-ecnl)|**a)
+# Dit0: Dit minimun (/cm^2/eV)
+# a: factor (cm^2/eV)
+# c: shape factor
+# ecnl: E_(charge neutral level) from Ei (Ec side postivie)
+        ecnl=self.Dit_Ecnl
+        dit0=self.Dit_Dit0
+        a=self.Dit_a
+        c=self.Dit_c
+        if (-efs>ecnl):
+            sign=-1.0 # accepter-like interface state
+        else:
+            sign=+1.0 # donnor-like interface state
+            
+        return sign*(dit0*math.exp(pow(c*(math.fabs(efs-ecnl)),a))) # (/cm2/eV)
+            
+    def interfaceCharge(self, efs): # Qit C/cm2 */
+# efs temporary surface Fermi level from Ei
+# ecnl from Ei (Ec side positive)
+# efsstep=1e-5; /* 0.01 mV step */
+# Qit;
+#  const double eNL0=Dit_eNL0;
+        ecnl=self.Dit_Ecnl
+        dit0=self.Dit_Dit0
+        a=self.Dit_a
+        c=self.Dit_c
+
+        Qit=0;
+        efsstep=1e-3 # 0.01 mV step
+        efs0=ecnl # integration from E_CNL to efs
+        if (efs > ecnl):
+            while (efs0 < efs):
+                Qit=Qit+QE*self.interfaceStateDensity(efs)*efsstep
+                efs0+=efsstep
+        else:
+            while (efs0 > efs):
+                Qit=Qit+QE*self.interfaceStateDensity(efs)*efsstep
+                efs0-=efsstep
+        return Qit # (C/cm2)
+
+        
 def Ffunction(betaphi, npratio):
     try:
         return math.sqrt((math.exp(-betaphi) + betaphi -1.0) + npratio*((math.exp(betaphi) - betaphi -1.0)))
     except:
         return 0
+
 
 app=QtWidgets.QApplication(sys.argv)
 main=MainWindow()
