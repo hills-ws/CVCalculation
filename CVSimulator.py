@@ -26,7 +26,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.initUI()
 
     def initUI(self):
-        self.resize(800,600)
+        self.resize(900,600)
 
         # plotWidget1: Dit versus phis distribution 
         self.plotWidget1 = pg.PlotWidget()
@@ -35,8 +35,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plotWidget1.addLegend(offset=(-10, 10))
         styles={'color':'b'}
         self.plotWidget1.setLabel("left", "log10 Dit", "/cm2/eV", **styles)
-        self.plotWidget1.setLabel("bottom", "phis", "eV", **styles)
-        self.plotWidget1.setRange(xRange=(-2,2.0), yRange=(9, 13), padding=0)
+        self.plotWidget1.setLabel("bottom", "E-Ei", "eV", **styles)
+        self.plotWidget1.setRange(xRange=(-2,2.0), yRange=(10, 13), padding=0)
         
         layout1=QtWidgets.QVBoxLayout()
         layout1.setContentsMargins(0, 0, 0, 0)
@@ -182,10 +182,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def draw_Dit(self):
         phis = np.arange(-1.0, 1.0, 0.02)
+        E_Ei=[]
         Dit=[]
         Ditlog_posi=[]
         Ditlog_nega=[]
         for phis0 in phis:
+            E_Ei.append(-phis0)
             Dit0=self.interfaceStateDensity(phis0)
             Dit.append(Dit0)
             if math.fabs(Dit0)<1e-30:
@@ -200,9 +202,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Plot Dit
         pen=pg.mkPen('r', width=2, style=QtCore.Qt.SolidLine)
-        self.plotWidget1.plot(x=phis, y=Ditlog_posi, pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True, name="posi Dit")
+        self.plotWidget1.plot(x=E_Ei, y=Ditlog_posi, pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True, name="posi Dit")
         pen=pg.mkPen('r', width=2, style=QtCore.Qt.DashLine)
-        self.plotWidget1.plot(x=phis, y=Ditlog_nega, pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True, name="nega Dit")
+        self.plotWidget1.plot(x=E_Ei, y=Ditlog_nega, pen=pen, brush=pg.mkBrush("b"), size =7.5, antialias = True, name="nega Dit")
 
     def interfaceStateDensity(self, efs): # Dit (/cm2/eV)
 # efs: surface Fermi level from Ei
