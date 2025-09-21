@@ -151,8 +151,8 @@
   <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>170</y>
+     <x>169</x>
+     <y>119</y>
      <width>75</width>
      <height>16</height>
     </rect>
@@ -505,8 +505,8 @@
   <widget class="QDoubleSpinBox" name="doubleSpinBox_Dit_c">
    <property name="geometry">
     <rect>
-     <x>101</x>
-     <y>191</y>
+     <x>200</x>
+     <y>140</y>
      <width>56</width>
      <height>21</height>
     </rect>
@@ -621,6 +621,19 @@
     <string>x</string>
    </property>
   </widget>
+  <widget class="QLabel" name="label_19">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>180</y>
+     <width>191</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Dit(E)=Dit0 exp(c|E-ECNL|^a)</string>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>
@@ -629,6 +642,8 @@
    <header location="global">pyqtgraph</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="Dit.qrc"/>
+ </resources>
  <connections/>
 </ui>

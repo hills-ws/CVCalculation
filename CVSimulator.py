@@ -248,7 +248,7 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             sign=+1.0 # donnor-like interface state
             
-        return sign*(dit0*math.exp(pow(c*(math.fabs(efs-ecnl)),a))) # (/cm2/eV)
+        return sign*(dit0*math.exp(c*pow((math.fabs(efs-ecnl)),a))) # (/cm2/eV)
             
     def interfaceCharge(self, psis): # Qit C/cm2 */
         # psis surface potential
